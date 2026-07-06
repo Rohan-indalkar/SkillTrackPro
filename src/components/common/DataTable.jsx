@@ -11,14 +11,10 @@ import usePagination from '../../hooks/usePagination'
  * onAdd: optional handler for the "+ Add" button in the toolbar
  */
 export default function DataTable({
-  title,
-  columns,
-  data,
-  searchKeys = [],
-  onEdit,
-  onDelete,
-  onAdd,
-  addLabel = 'Add',
+  title,  columns,
+  data,  searchKeys = [],
+  onEdit,  onDelete,
+  onAdd,  addLabel = 'Add',
 }) {
   const [query, setQuery] = useState('')
 

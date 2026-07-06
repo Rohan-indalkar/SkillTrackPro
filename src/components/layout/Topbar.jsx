@@ -10,6 +10,9 @@ export default function Topbar({ title, onToggleSidebar }) {
     navigate('/login')
   }
 
+  // Student notifications page doesn't exist yet (Day 4) — only Admin/Trainer can navigate there for now.
+  const notificationsPath = user?.role && user.role !== 'STUDENT' ? `/${user.role.toLowerCase()}/notifications` : null
+
   return (
     <div className="st-topbar">
       <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
@@ -24,7 +27,11 @@ export default function Topbar({ title, onToggleSidebar }) {
       </div>
 
       <div className="d-flex align-items-center gap-2 gap-md-3">
-        <button className="btn btn-sm btn-st-outline">
+        <button
+          className="btn btn-sm btn-st-outline"
+          onClick={() => notificationsPath && navigate(notificationsPath)}
+          disabled={!notificationsPath}
+        >
           <i className="bi bi-bell" />
           <span className="d-none d-md-inline ms-1">Notifications</span>
         </button>

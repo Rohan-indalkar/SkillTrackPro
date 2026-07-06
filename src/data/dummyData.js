@@ -49,3 +49,132 @@ export const coursesData = [
 export const trainerOptions = trainersData.map((t) => ({ label: t.name, value: t.name }))
 export const courseOptions = coursesData.map((c) => ({ label: c.name, value: c.name }))
 export const batchOptions = batchesData.map((b) => ({ label: b.name, value: b.name }))
+
+// The demo trainer login ("trainer@skilltrack.dev") maps to this name.
+// Used to scope Trainer-module pages to only the batches that trainer teaches.
+export const CURRENT_TRAINER_NAME = 'Rohit Kulkarni'
+
+export const trainerBatchOptions = batchesData
+  .filter((b) => b.trainer === CURRENT_TRAINER_NAME)
+  .map((b) => ({ label: b.name, value: b.name }))
+
+export function getStudentsByBatch(batchName) {
+  return studentsData.filter((s) => s.batch === batchName)
+}
+
+export function getBatchAvgAttendance(batchName) {
+  const students = getStudentsByBatch(batchName)
+  if (students.length === 0) return 0
+  const total = students.reduce((sum, s) => sum + s.attendance, 0)
+  return Math.round(total / students.length)
+}
+
+// Institute-wide attendance across the last 8 sessions — used by Admin Reports.
+export const attendanceTrendData = [
+  { session: 'S1', avgAttendance: 88 },
+  { session: 'S2', avgAttendance: 91 },
+  { session: 'S3', avgAttendance: 85 },
+  { session: 'S4', avgAttendance: 93 },
+  { session: 'S5', avgAttendance: 90 },
+  { session: 'S6', avgAttendance: 87 },
+  { session: 'S7', avgAttendance: 94 },
+  { session: 'S8', avgAttendance: 91 },
+]
+
+export const notificationsData = [
+  {
+    id: 1,
+    type: 'Assignment',
+    title: 'New assignment posted',
+    message: '"Employee CRUD using Collections" was assigned to Java Full Stack A. Due 2026-07-10.',
+    date: '2026-07-04',
+    read: false,
+  },
+  {
+    id: 2,
+    type: 'Attendance',
+    title: 'Low attendance alert',
+    message: 'Omkar Jadhav\'s attendance has dropped to 65% in Java Full Stack B.',
+    date: '2026-07-03',
+    read: false,
+  },
+  {
+    id: 3,
+    type: 'Announcement',
+    title: 'Mock interview week scheduled',
+    message: 'Mock interviews for all final-stage batches will run July 20-24.',
+    date: '2026-07-02',
+    read: true,
+  },
+  {
+    id: 4,
+    type: 'Quiz',
+    title: 'Quiz results published',
+    message: 'Results for "Streams API Practice Set" are now visible to students.',
+    date: '2026-07-01',
+    read: true,
+  },
+]
+
+export const topicLogsData = [
+  {
+    id: 1,
+    batch: 'Java Full Stack A',
+    course: 'Java Full Stack',
+    topic: 'Collections Framework — HashMap & TreeMap',
+    duration: 2,
+    date: '2026-07-04',
+    homework: 'Solve 5 problems using HashMap',
+    remarks: 'Students understood Collections well. A few need revision on TreeMap ordering.',
+  },
+  {
+    id: 2,
+    batch: 'Java Full Stack A',
+    course: 'Java Full Stack',
+    topic: 'Streams API — map, filter, reduce',
+    duration: 1.5,
+    date: '2026-07-03',
+    homework: 'Rewrite last week\'s loops using Streams',
+    remarks: 'Good engagement, majority completed the in-class exercise.',
+  },
+  {
+    id: 3,
+    batch: 'Java Full Stack C',
+    course: 'Java Full Stack',
+    topic: 'Core Java — OOP Basics',
+    duration: 2,
+    date: '2026-07-02',
+    homework: 'Read chapter on inheritance',
+    remarks: 'First session with the new batch, covered introductions and setup.',
+  },
+]
+
+export const assignmentsData = [
+  {
+    id: 1,
+    title: 'Employee CRUD using Collections',
+    batch: 'Java Full Stack A',
+    dueDate: '2026-07-10',
+    totalStudents: 28,
+    submissions: 19,
+    status: 'Open',
+  },
+  {
+    id: 2,
+    title: 'Streams API Practice Set',
+    batch: 'Java Full Stack A',
+    dueDate: '2026-07-06',
+    totalStudents: 28,
+    submissions: 28,
+    status: 'Closed',
+  },
+  {
+    id: 3,
+    title: 'OOP Mini Project',
+    batch: 'Java Full Stack C',
+    dueDate: '2026-07-15',
+    totalStudents: 12,
+    submissions: 3,
+    status: 'Open',
+  },
+]

@@ -17,6 +17,7 @@ const NAV_BY_ROLE = {
     { to: '/trainer/assignments', label: 'Assignments', icon: 'bi-clipboard-check' },
     { to: '/trainer/marks', label: 'Marks', icon: 'bi-graph-up' },
     { to: '/trainer/reports', label: 'Reports', icon: 'bi-bar-chart' },
+    { to: '/trainer/notifications', label: 'Notifications', icon: 'bi-bell' },
   ],
   STUDENT: [
     { to: '/student/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2' },

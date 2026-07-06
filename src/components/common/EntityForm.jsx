@@ -1,5 +1,6 @@
 /**
  * fields: [{ name, label, type = 'text', options?: [{label, value}] }]
+ * types supported: text, email, number, date, select, textarea
  * values: object of current form values
  * onChange(name, value)
  */
@@ -24,6 +25,14 @@ export default function EntityForm({ fields, values, onChange }) {
                 </option>
               ))}
             </select>
+          ) : f.type === 'textarea' ? (
+            <textarea
+              className="form-control"
+              rows={f.rows || 3}
+              value={values[f.name] ?? ''}
+              onChange={(e) => onChange(f.name, e.target.value)}
+              placeholder={f.placeholder || ''}
+            />
           ) : (
             <input
               type={f.type || 'text'}
