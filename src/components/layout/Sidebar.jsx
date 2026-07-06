@@ -28,33 +28,49 @@ const NAV_BY_ROLE = {
   ],
 }
 
-export default function Sidebar({ role }) {
+/**
+ * Responsive behavior:
+ * - Desktop (>=992px): sticky, always visible, part of normal flow.
+ * - Tablet/mobile (<992px): fixed off-canvas panel, hidden by default,
+ *   slides in via the `.open` class, dismissed by the backdrop or a link click.
+ */
+export default function Sidebar({ role, open, onClose }) {
   const items = NAV_BY_ROLE[role] || []
+
   return (
-    <aside className="st-sidebar">
-      <div className="st-sidebar-brand">
-        <span className="dot" />
-        SkillTrack <span style={{ color: 'var(--red)' }}>Pro</span>
-      </div>
-      <div className="px-3 pt-3 pb-1">
-        <div className="st-eyebrow">{role}</div>
-      </div>
-      <nav className="mt-1 flex-grow-1">
-        {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => `st-nav-link ${isActive ? 'active' : ''}`}
-          >
-            <i className={`bi ${item.icon}`} />
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-      <div className="px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
-        <div className="pulse-line" />
-        <div className="st-eyebrow">v0.1 &mdash; MVP</div>
-      </div>
-    </aside>
+    <>
+      {open && <div className="st-sidebar-backdrop d-lg-none" onClick={onClose} />}
+      <aside className={`st-sidebar ${open ? 'open' : ''}`}>
+        <div className="d-flex align-items-center justify-content-between">
+          <div className="st-sidebar-brand">
+            <span className="dot" />
+            SkillTrack <span style={{ color: 'var(--red)' }}>Pro</span>
+          </div>
+          <button className="btn btn-sm d-lg-none me-2" onClick={onClose} aria-label="Close menu">
+            <i className="bi bi-x-lg" />
+          </button>
+        </div>
+        <div className="px-3 pt-2 pb-1">
+          <div className="st-eyebrow">{role}</div>
+        </div>
+        <nav className="mt-1 flex-grow-1">
+          {items.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={onClose}
+              className={({ isActive }) => `st-nav-link ${isActive ? 'active' : ''}`}
+            >
+              <i className={`bi ${item.icon}`} />
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+          <div className="pulse-line" />
+          <div className="st-eyebrow">v0.1 &mdash; MVP</div>
+        </div>
+      </aside>
+    </>
   )
 }

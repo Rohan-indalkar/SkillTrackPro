@@ -8,7 +8,7 @@ export default function AdminDashboard() {
     <DashboardLayout title="Admin Dashboard">
       <div className="row g-3 mb-3">
         {adminStats.map((s) => (
-          <div className="col-6 col-lg-3" key={s.label}>
+          <div className="col-12 col-sm-6 col-lg-3" key={s.label}>
             <StatCard {...s} />
           </div>
         ))}
