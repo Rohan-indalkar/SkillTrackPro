@@ -3,8 +3,9 @@ import DashboardLayout from '../../components/layout/DashboardLayout'
 import DataTable from '../../components/common/DataTable'
 import Modal from '../../components/common/Modal'
 import EntityForm from '../../components/common/EntityForm'
-import useCrud from '../../hooks/useCrud'
-import { trainersData } from '../../data/dummyData'
+import useCrudAsync from '../../hooks/useCrudAsync'
+import { useToast } from '../../context/ToastContext'
+import { api } from '../../services/mockApi'
 
 const FIELDS = [
   { name: 'name', label: 'Full name' },
@@ -25,7 +26,6 @@ const COLUMNS = [
   { key: 'name', label: 'Name' },
   { key: 'email', label: 'Email' },
   { key: 'specialization', label: 'Specialization' },
-  { key: 'batches', label: 'Batches' },
   {
     key: 'status',
     label: 'Status',
@@ -38,14 +38,16 @@ const COLUMNS = [
 ]
 
 export default function Trainers() {
-  const { items, add, update, remove } = useCrud(trainersData)
+  const { items, loading, add, update, remove } = useCrudAsync(() => api.trainers.getAll(), api.trainers)
+  const toast = useToast()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({})
+  const [saving, setSaving] = useState(false)
 
   const openAdd = () => {
     setEditingId(null)
-    setForm({ name: '', email: '', specialization: '', status: 'Active', batches: 0 })
+    setForm({ name: '', email: '', specialization: '', status: 'Active' })
     setModalOpen(true)
   }
 
@@ -55,18 +57,29 @@ export default function Trainers() {
     setModalOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name || !form.email) return
-    if (editingId) {
-      update(editingId, form)
-    } else {
-      add(form)
+    setSaving(true)
+    try {
+      if (editingId) {
+        await update(editingId, form)
+        toast.success('Trainer updated.')
+      } else {
+        await add(form)
+        toast.success('Trainer added.')
+      }
+      setModalOpen(false)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setSaving(false)
     }
-    setModalOpen(false)
   }
 
-  const handleDelete = (row) => {
-    if (window.confirm(`Remove ${row.name} from trainers?`)) remove(row.id)
+  const handleDelete = async (row) => {
+    if (!window.confirm(`Remove ${row.name} from trainers?`)) return
+    await remove(row.id)
+    toast.success(`${row.name} removed.`)
   }
 
   return (
@@ -75,11 +88,13 @@ export default function Trainers() {
         title="All trainers"
         columns={COLUMNS}
         data={items}
+        loading={loading}
         searchKeys={['name', 'email', 'specialization']}
         onAdd={openAdd}
         addLabel="Add trainer"
         onEdit={openEdit}
         onDelete={handleDelete}
+        emptyState={{ icon: 'bi-person-badge', title: 'No trainers yet', message: 'Add your first trainer to get started.' }}
       />
 
       <Modal
@@ -88,11 +103,11 @@ export default function Trainers() {
         onClose={() => setModalOpen(false)}
         footer={
           <>
-            <button className="btn btn-st-outline" onClick={() => setModalOpen(false)}>
+            <button className="btn btn-st-outline" onClick={() => setModalOpen(false)} disabled={saving}>
               Cancel
             </button>
-            <button className="btn btn-st-primary" onClick={handleSave}>
-              Save trainer
+            <button className="btn btn-st-primary" onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving…' : 'Save trainer'}
             </button>
           </>
         }

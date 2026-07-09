@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
+import { ToastProvider } from './context/ToastContext'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 import Login from './pages/auth/Login'
@@ -19,12 +21,20 @@ import Assignments from './pages/trainer/Assignments'
 import Marks from './pages/trainer/Marks'
 import TrainerReports from './pages/trainer/Reports'
 import TrainerNotifications from './pages/trainer/Notifications'
-import PlaceholderPage from './pages/PlaceholderPage'
+import StudentDashboard from './pages/student/StudentDashboard'
+import StudentAttendance from './pages/student/Attendance'
+import StudentTopics from './pages/student/Topics'
+import StudentAssignments from './pages/student/Assignments'
+import StudentMarks from './pages/student/Marks'
+import StudentProgress from './pages/student/Progress'
+import StudentNotifications from './pages/student/Notifications'
 
 function App() {
   return (
-    <AuthProvider>
-        <Routes>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
@@ -146,21 +156,68 @@ function App() {
           />
 
           {/* Student */}
-          {['dashboard', 'attendance', 'topics', 'assignments', 'marks', 'progress'].map((slug) => (
-            <Route
-              key={slug}
-              path={`/student/${slug}`}
-              element={
-                <ProtectedRoute allowedRoles={['STUDENT']}>
-                  <PlaceholderPage title={`Student ${slug[0].toUpperCase() + slug.slice(1)}`} />
-                </ProtectedRoute>
-              }
-            />
-          ))}
+          <Route
+            path="/student/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT']}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/attendance"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT']}>
+                <StudentAttendance />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/topics"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT']}>
+                <StudentTopics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/assignments"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT']}>
+                <StudentAssignments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/marks"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT']}>
+                <StudentMarks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/progress"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT']}>
+                <StudentProgress />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/notifications"
+            element={
+              <ProtectedRoute allowedRoles={['STUDENT']}>
+                <StudentNotifications />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
-    </AuthProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
   )
 }
 

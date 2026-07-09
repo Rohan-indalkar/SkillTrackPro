@@ -1,0 +1,489 @@
+/* ===========================
+   Premium Login Page
+=========================== */
+
+body{
+    background:#f8fafc;
+    font-family:'Inter',sans-serif;
+}
+
+/* Left Hero */
+
+.hero-section{
+
+    background:linear-gradient(135deg,#0f172a,#1e293b,#111827);
+    color:white;
+    overflow:hidden;
+    position:relative;
+
+}
+
+/* Background Glow */
+
+.hero-section::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:450px;
+
+    height:450px;
+
+    border-radius:50%;
+
+    background:#dc354540;
+
+    top:-150px;
+
+    right:-100px;
+
+    filter:blur(100px);
+
+}
+
+.hero-section::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:350px;
+
+    height:350px;
+
+    border-radius:50%;
+
+    background:#0dcaf030;
+
+    bottom:-120px;
+
+    left:-120px;
+
+    filter:blur(90px);
+
+}
+
+/* Logo */
+
+.logo{
+
+    color:white;
+
+    font-weight:700;
+
+    font-size:34px;
+
+}
+
+.logo-dot{
+
+    width:16px;
+
+    height:16px;
+
+    border-radius:50%;
+
+    background:#ff5470;
+
+    box-shadow:0 0 20px #ff5470;
+
+}
+
+/* Badge */
+
+.hero-badge{
+
+    display:inline-block;
+
+    background:rgba(255,255,255,.08);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    color:white;
+
+    padding:10px 18px;
+
+    border-radius:40px;
+
+    margin-bottom:30px;
+
+}
+
+/* Heading */
+
+.hero-title{
+
+    font-size:60px;
+
+    font-weight:800;
+
+    line-height:1.15;
+
+    color:white;
+
+}
+
+.hero-title span{
+
+    color:#ff5470;
+
+}
+
+.hero-text{
+
+    color:#cbd5e1;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+    max-width:500px;
+
+}
+
+/* Feature List */
+
+.feature{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin:18px 0;
+
+    color:white;
+
+    font-size:17px;
+
+}
+
+.feature i{
+
+    color:#22c55e;
+
+    font-size:20px;
+
+}
+
+/* Buttons */
+
+.hero-btn{
+
+    padding:13px 30px;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+    transition:.35s;
+
+}
+
+.hero-btn:hover{
+
+    transform:translateY(-4px);
+
+}
+
+/* Dashboard Cards */
+
+.dashboard-card{
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(18px);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    border-radius:20px;
+
+    padding:22px;
+
+    color:white;
+
+    transition:.4s;
+
+    animation:float 5s ease-in-out infinite;
+
+}
+
+.dashboard-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 20px 40px rgba(0,0,0,.25);
+
+}
+
+.dashboard-card h2{
+
+    font-weight:700;
+
+    margin-top:10px;
+
+}
+
+/* Login Card */
+
+.login-card{
+
+    background:white;
+
+    border-radius:25px;
+
+    padding:45px;
+
+    box-shadow:0 25px 60px rgba(0,0,0,.12);
+
+    transition:.4s;
+
+}
+
+.login-card:hover{
+
+    transform:translateY(-8px);
+
+}
+
+/* Inputs */
+
+.form-control{
+
+    height:55px;
+
+    border-radius:12px;
+
+    border:1px solid #dbe4ee;
+
+    box-shadow:none;
+
+}
+
+.form-control:focus{
+
+    border-color:#ff5470;
+
+    box-shadow:0 0 0 .25rem rgba(255,84,112,.15);
+
+}
+
+.input-group-text{
+
+    background:white;
+
+    border-radius:12px 0 0 12px;
+
+}
+
+/* Login Button */
+
+.btn-danger{
+
+    height:55px;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+    transition:.3s;
+
+}
+
+.btn-danger:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 15px 35px rgba(220,53,69,.35);
+
+}
+
+/* Outline Buttons */
+
+.btn-outline-dark,
+
+.btn-outline-primary{
+
+    height:52px;
+
+    border-radius:12px;
+
+    transition:.3s;
+
+}
+
+.btn-outline-dark:hover,
+
+.btn-outline-primary:hover{
+
+    transform:translateY(-3px);
+
+}
+
+/* Trust Badges */
+
+.trust{
+
+    display:flex;
+
+    gap:15px;
+
+    flex-wrap:wrap;
+
+}
+
+.trust span{
+
+    background:rgba(255,255,255,.08);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    padding:12px 18px;
+
+    border-radius:12px;
+
+}
+
+/* Stats */
+
+.stats{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:18px;
+
+}
+
+.stat-box{
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(18px);
+
+    border-radius:18px;
+
+    padding:18px;
+
+    transition:.35s;
+
+}
+
+.stat-box:hover{
+
+    transform:scale(1.05);
+
+}
+
+.stat-box h3{
+
+    color:white;
+
+    font-weight:700;
+
+}
+
+.stat-box p{
+
+    color:#cbd5e1;
+
+}
+
+/* Floating Animation */
+
+@keyframes float{
+
+0%{
+
+transform:translateY(0px);
+
+}
+
+50%{
+
+transform:translateY(-10px);
+
+}
+
+100%{
+
+transform:translateY(0px);
+
+}
+
+}
+
+/* Fade Animation */
+
+@keyframes fadeIn{
+
+from{
+
+opacity:0;
+
+transform:translateY(30px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+.login-card,
+
+.dashboard-card{
+
+animation:fadeIn .8s ease;
+
+}
+
+/* Responsive */
+
+@media(max-width:992px){
+
+.hero-section{
+
+display:none;
+
+}
+
+.login-card{
+
+padding:30px;
+
+margin:20px;
+
+}
+
+.hero-title{
+
+font-size:42px;
+
+}
+
+}
+
+@media(max-width:576px){
+
+.login-card{
+
+padding:20px;
+
+}
+
+.hero-title{
+
+font-size:34px;
+
+}
+
+}

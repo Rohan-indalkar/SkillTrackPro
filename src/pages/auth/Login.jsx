@@ -14,10 +14,14 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const result = login(email, password)
+    setSubmitting(true)
+    setError('')
+    const result = await login(email, password)
+    setSubmitting(false)
     if (!result.success) {
       setError(result.message)
       return
@@ -105,8 +109,15 @@ export default function Login() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-st-primary w-100 mt-2">
-              Sign in
+            <button type="submit" className="btn btn-st-primary w-100 mt-2" disabled={submitting}>
+              {submitting ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" />
+                  Signing in…
+                </>
+              ) : (
+                'Sign in'
+              )}
             </button>
           </form>
 

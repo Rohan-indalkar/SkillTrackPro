@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
-import { trainerBatchOptions, getStudentsByBatch } from '../../data/dummyData'
+import LoadingSkeleton from '../../components/common/LoadingSkeleton'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { api } from '../../services/mockApi'
 
 const STATUSES = ['Present', 'Absent', 'Late']
 
@@ -10,28 +13,56 @@ function todayISO() {
 }
 
 export default function Attendance() {
-  const [batch, setBatch] = useState(trainerBatchOptions[0]?.value || '')
+  const { user } = useAuth()
+  const toast = useToast()
+
+  const [batchOptions, setBatchOptions] = useState([])
+  const [batch, setBatch] = useState('')
   const [date, setDate] = useState(todayISO())
+  const [students, setStudents] = useState([])
   const [attendance, setAttendance] = useState({})
-  const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
-  const students = getStudentsByBatch(batch)
-
-  // Reset to "Present" for everyone whenever the batch or date changes,
-  // mirroring how a trainer would start a fresh register each session.
+  // Load this trainer's batches once
   useEffect(() => {
-    const initial = {}
-    students.forEach((s) => {
-      initial[s.id] = 'Present'
+    let active = true
+    api.trainers.findByEmail(user.email).then((trainer) => {
+      if (!trainer) return
+      api.batches.getByTrainer(trainer.name).then((batches) => {
+        if (!active) return
+        setBatchOptions(batches.map((b) => ({ label: b.name, value: b.name })))
+        if (batches[0]) setBatch(batches[0].name)
+      })
     })
-    setAttendance(initial)
-    setSaved(false)
+    return () => {
+      active = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Reload students + reset attendance whenever batch/date changes
+  useEffect(() => {
+    if (!batch) return
+    let active = true
+    setLoading(true)
+    api.students.getByBatch(batch).then((list) => {
+      if (!active) return
+      setStudents(list)
+      const initial = {}
+      list.forEach((s) => {
+        initial[s.id] = 'Present'
+      })
+      setAttendance(initial)
+      setLoading(false)
+    })
+    return () => {
+      active = false
+    }
   }, [batch, date])
 
   const setStatus = (studentId, status) => {
     setAttendance((prev) => ({ ...prev, [studentId]: status }))
-    setSaved(false)
   }
 
   const counts = students.reduce(
@@ -43,9 +74,11 @@ export default function Attendance() {
     { Present: 0, Absent: 0, Late: 0 }
   )
 
-  const handleSave = () => {
-    setSaved(true)
-    // In production this posts { batch, date, attendance } to the Spring Boot API.
+  const handleSave = async () => {
+    setSaving(true)
+    await api.attendance.mark(batch, date, attendance)
+    setSaving(false)
+    toast.success(`Attendance saved for ${date}.`)
   }
 
   return (
@@ -57,7 +90,7 @@ export default function Attendance() {
           <div className="col-12 col-sm-6 col-lg-4">
             <label className="form-label st-eyebrow">Batch</label>
             <select className="form-select" value={batch} onChange={(e) => setBatch(e.target.value)}>
-              {trainerBatchOptions.map((opt) => (
+              {batchOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -76,7 +109,9 @@ export default function Attendance() {
           <span className="st-badge st-badge-red">Late: {counts.Late}</span>
         </div>
 
-        {students.length === 0 ? (
+        {loading ? (
+          <LoadingSkeleton variant="rows" rows={4} />
+        ) : students.length === 0 ? (
           <p className="text-muted mb-0">No students found in this batch.</p>
         ) : (
           <div className="d-flex flex-column gap-2">
@@ -121,12 +156,11 @@ export default function Attendance() {
           </div>
         )}
 
-        {students.length > 0 && (
+        {!loading && students.length > 0 && (
           <div className="d-flex align-items-center gap-3 mt-3 flex-wrap">
-            <button className="btn btn-st-primary" onClick={handleSave}>
-              <i className="bi bi-check2-circle me-1" /> Save attendance
+            <button className="btn btn-st-primary" onClick={handleSave} disabled={saving}>
+              <i className="bi bi-check2-circle me-1" /> {saving ? 'Saving…' : 'Save attendance'}
             </button>
-            {saved && <span className="st-badge st-badge-success">Saved for {date}</span>}
           </div>
         )}
       </Card>

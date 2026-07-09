@@ -1,35 +1,63 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
-import { trainerBatchOptions, getStudentsByBatch } from '../../data/dummyData'
+import LoadingSkeleton from '../../components/common/LoadingSkeleton'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { api } from '../../services/mockApi'
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
 export default function Marks() {
+  const { user } = useAuth()
+  const toast = useToast()
+
+  const [batchOptions, setBatchOptions] = useState([])
   const [records, setRecords] = useState([])
+  const [loadingRecords, setLoadingRecords] = useState(true)
   const [editingId, setEditingId] = useState(null)
 
   const [title, setTitle] = useState('')
-  const [batch, setBatch] = useState(trainerBatchOptions[0]?.value || '')
+  const [batch, setBatch] = useState('')
   const [totalMarks, setTotalMarks] = useState(20)
   const [date, setDate] = useState(todayISO())
+  const [students, setStudents] = useState([])
   const [scores, setScores] = useState({})
+  const [saving, setSaving] = useState(false)
 
-  const students = getStudentsByBatch(batch)
-
-  // When the batch changes (and we're not mid-edit of a saved record),
-  // reset the score sheet so the new batch's students start blank.
   useEffect(() => {
-    if (editingId) return
-    const initial = {}
-    students.forEach((s) => {
-      initial[s.id] = ''
+    api.trainers.findByEmail(user.email).then((trainer) => {
+      if (!trainer) return
+      api.batches.getByTrainer(trainer.name).then((batches) => {
+        const opts = batches.map((b) => ({ label: b.name, value: b.name }))
+        setBatchOptions(opts)
+        if (opts[0]) setBatch(opts[0].value)
+      })
     })
-    setScores(initial)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [batch])
+  }, [user.email])
+
+  const reloadRecords = () => {
+    setLoadingRecords(true)
+    api.marks.getAll().then((data) => {
+      setRecords(data)
+      setLoadingRecords(false)
+    })
+  }
+  useEffect(reloadRecords, [])
+
+  useEffect(() => {
+    if (!batch || editingId) return
+    api.students.getByBatch(batch).then((list) => {
+      setStudents(list)
+      const initial = {}
+      list.forEach((s) => {
+        initial[s.id] = ''
+      })
+      setScores(initial)
+    })
+  }, [batch, editingId])
 
   const setScore = (studentId, value) => {
     const num = value === '' ? '' : Math.max(0, Math.min(Number(totalMarks) || 0, Number(value)))
@@ -41,17 +69,20 @@ export default function Marks() {
     setTitle('')
     setTotalMarks(20)
     setDate(todayISO())
-    const initial = {}
-    getStudentsByBatch(batch).forEach((s) => {
-      initial[s.id] = ''
+    api.students.getByBatch(batch).then((list) => {
+      setStudents(list)
+      const initial = {}
+      list.forEach((s) => {
+        initial[s.id] = ''
+      })
+      setScores(initial)
     })
-    setScores(initial)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim() || students.length === 0) return
+    setSaving(true)
     const record = {
-      id: editingId || Date.now(),
       title,
       batch,
       totalMarks: Number(totalMarks) || 0,
@@ -59,19 +90,25 @@ export default function Marks() {
       scores: students.map((s) => ({ studentId: s.id, name: s.name, score: scores[s.id] === '' ? 0 : Number(scores[s.id]) })),
     }
     if (editingId) {
-      setRecords((prev) => prev.map((r) => (r.id === editingId ? record : r)))
+      await api.marks.update(editingId, record)
+      toast.success('Assessment updated.')
     } else {
-      setRecords((prev) => [record, ...prev])
+      await api.marks.create(record)
+      toast.success('Assessment saved — students have been notified.')
     }
+    setSaving(false)
     resetForm()
+    reloadRecords()
   }
 
-  const handleEdit = (record) => {
+  const handleEdit = async (record) => {
     setEditingId(record.id)
     setTitle(record.title)
     setBatch(record.batch)
     setTotalMarks(record.totalMarks)
     setDate(record.date)
+    const list = await api.students.getByBatch(record.batch)
+    setStudents(list)
     const loaded = {}
     record.scores.forEach((s) => {
       loaded[s.studentId] = s.score
@@ -79,11 +116,12 @@ export default function Marks() {
     setScores(loaded)
   }
 
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this assessment record?')) {
-      setRecords((prev) => prev.filter((r) => r.id !== id))
-      if (editingId === id) resetForm()
-    }
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this assessment record?')) return
+    await api.marks.remove(id)
+    if (editingId === id) resetForm()
+    reloadRecords()
+    toast.success('Assessment deleted.')
   }
 
   const average = (record) => {
@@ -111,13 +149,7 @@ export default function Marks() {
               </div>
               <div className="col-6 col-sm-3">
                 <label className="form-label st-eyebrow">Total marks</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  min="1"
-                  value={totalMarks}
-                  onChange={(e) => setTotalMarks(e.target.value)}
-                />
+                <input type="number" className="form-control" min="1" value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} />
               </div>
               <div className="col-6 col-sm-3">
                 <label className="form-label st-eyebrow">Date</label>
@@ -127,13 +159,8 @@ export default function Marks() {
 
             <div className="mb-2">
               <label className="form-label st-eyebrow">Batch</label>
-              <select
-                className="form-select"
-                value={batch}
-                onChange={(e) => setBatch(e.target.value)}
-                disabled={!!editingId}
-              >
-                {trainerBatchOptions.map((opt) => (
+              <select className="form-select" value={batch} onChange={(e) => setBatch(e.target.value)} disabled={!!editingId}>
+                {batchOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -162,8 +189,8 @@ export default function Marks() {
             </div>
 
             <div className="d-flex gap-2 mt-3 flex-wrap">
-              <button className="btn btn-st-primary" onClick={handleSave}>
-                <i className="bi bi-check2-circle me-1" /> {editingId ? 'Update assessment' : 'Save assessment'}
+              <button className="btn btn-st-primary" onClick={handleSave} disabled={saving}>
+                <i className="bi bi-check2-circle me-1" /> {saving ? 'Saving…' : editingId ? 'Update assessment' : 'Save assessment'}
               </button>
               {editingId && (
                 <button className="btn btn-st-outline" onClick={resetForm}>
@@ -177,29 +204,34 @@ export default function Marks() {
         <div className="col-12 col-lg-5">
           <Card title="Saved assessments" eyebrow="History">
             <div className="pulse-line" />
-            {records.length === 0 && <p className="text-muted mb-0">No assessments saved yet.</p>}
-            <div className="d-flex flex-column gap-3">
-              {records.map((r) => (
-                <div key={r.id} className="p-2" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <span className="st-badge st-badge-red">{r.batch}</span>
-                    <span className="st-eyebrow">{r.date}</span>
+            {loadingRecords ? (
+              <LoadingSkeleton variant="rows" rows={3} />
+            ) : records.length === 0 ? (
+              <p className="text-muted mb-0">No assessments saved yet.</p>
+            ) : (
+              <div className="d-flex flex-column gap-3">
+                {records.map((r) => (
+                  <div key={r.id} className="p-2" style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                      <span className="st-badge st-badge-red">{r.batch}</span>
+                      <span className="st-eyebrow">{r.date}</span>
+                    </div>
+                    <div style={{ fontWeight: 600, marginTop: 4 }}>{r.title}</div>
+                    <div className="st-eyebrow mt-1">
+                      Avg: {average(r)} / {r.totalMarks} &middot; {r.scores.length} students
+                    </div>
+                    <div className="d-flex gap-2 mt-2">
+                      <button className="btn btn-sm btn-st-outline" onClick={() => handleEdit(r)}>
+                        <i className="bi bi-pencil" />
+                      </button>
+                      <button className="btn btn-sm btn-st-outline" style={{ color: 'var(--red-dark)' }} onClick={() => handleDelete(r.id)}>
+                        <i className="bi bi-trash" />
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ fontWeight: 600, marginTop: 4 }}>{r.title}</div>
-                  <div className="st-eyebrow mt-1">
-                    Avg: {average(r)} / {r.totalMarks} &middot; {r.scores.length} students
-                  </div>
-                  <div className="d-flex gap-2 mt-2">
-                    <button className="btn btn-sm btn-st-outline" onClick={() => handleEdit(r)}>
-                      <i className="bi bi-pencil" />
-                    </button>
-                    <button className="btn btn-sm btn-st-outline" style={{ color: 'var(--red-dark)' }} onClick={() => handleDelete(r.id)}>
-                      <i className="bi bi-trash" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
       </div>

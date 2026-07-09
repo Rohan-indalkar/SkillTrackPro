@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import Card from '../../components/common/Card'
-import useCrud from '../../hooks/useCrud'
-import { notificationsData } from '../../data/dummyData'
+import LoadingSkeleton from '../../components/common/LoadingSkeleton'
+import EmptyState from '../../components/common/EmptyState'
+import useCrudAsync from '../../hooks/useCrudAsync'
+import { useToast } from '../../context/ToastContext'
+import { api } from '../../services/mockApi'
 
 const TYPES = ['All', 'Announcement', 'Assignment', 'Attendance', 'Quiz']
 
@@ -13,33 +16,41 @@ const TYPE_BADGE = {
   Quiz: 'st-badge-success',
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
-}
-
 export default function Notifications() {
-  const { items, add, update } = useCrud(notificationsData)
+  const { items, loading, reload } = useCrudAsync(() => api.notifications.getForRole('ADMIN'), api.notifications)
+  const toast = useToast()
   const [filter, setFilter] = useState('All')
   const [broadcastOpen, setBroadcastOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
 
   const visible = (filter === 'All' ? items : items.filter((n) => n.type === filter))
-    .slice()
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
 
   const unreadCount = items.filter((n) => !n.read).length
 
-  const markRead = (id) => update(id, { read: true })
-  const markAllRead = () => items.forEach((n) => !n.read && update(n.id, { read: true }))
+  const markRead = async (id) => {
+    await api.notifications.markRead(id)
+    reload()
+  }
 
-  const handleBroadcast = (e) => {
+  const markAllRead = async () => {
+    await api.notifications.markAllRead('ADMIN')
+    reload()
+    toast.success('All notifications marked as read.')
+  }
+
+  const handleBroadcast = async (e) => {
     e.preventDefault()
     if (!title.trim()) return
-    add({ type: 'Announcement', title, message, date: todayISO(), read: true })
+    setSending(true)
+    await api.notifications.broadcast({ title, message })
+    setSending(false)
     setTitle('')
     setMessage('')
     setBroadcastOpen(false)
+    reload()
+    toast.success('Announcement sent to everyone.')
   }
 
   return (
@@ -69,38 +80,42 @@ export default function Notifications() {
               ))}
             </div>
 
-            {visible.length === 0 && <p className="text-muted mb-0">No notifications in this category.</p>}
-
-            <div className="d-flex flex-column gap-2">
-              {visible.map((n) => (
-                <div
-                  key={n.id}
-                  className="d-flex justify-content-between align-items-start flex-wrap gap-2 p-2"
-                  style={{
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)',
-                    background: n.read ? 'transparent' : 'var(--red-tint)',
-                  }}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <span className={`st-badge ${TYPE_BADGE[n.type] || 'st-badge-success'}`}>{n.type}</span>
-                      <span className="st-eyebrow">{n.date}</span>
-                      {!n.read && <span className="st-badge st-badge-red">New</span>}
+            {loading ? (
+              <LoadingSkeleton variant="rows" rows={4} />
+            ) : visible.length === 0 ? (
+              <EmptyState icon="bi-bell" title="No notifications in this category" />
+            ) : (
+              <div className="d-flex flex-column gap-2">
+                {visible.map((n) => (
+                  <div
+                    key={n.id}
+                    className="d-flex justify-content-between align-items-start flex-wrap gap-2 p-2"
+                    style={{
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: n.read ? 'transparent' : 'var(--red-tint)',
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div className="d-flex align-items-center gap-2 flex-wrap">
+                        <span className={`st-badge ${TYPE_BADGE[n.type] || 'st-badge-success'}`}>{n.type}</span>
+                        <span className="st-eyebrow">{n.date}</span>
+                        {!n.read && <span className="st-badge st-badge-red">New</span>}
+                      </div>
+                      <div style={{ fontWeight: 600, marginTop: 4 }}>{n.title}</div>
+                      <div className="text-muted" style={{ fontSize: '0.85rem' }}>
+                        {n.message}
+                      </div>
                     </div>
-                    <div style={{ fontWeight: 600, marginTop: 4 }}>{n.title}</div>
-                    <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                      {n.message}
-                    </div>
+                    {!n.read && (
+                      <button className="btn btn-sm btn-st-outline flex-shrink-0" onClick={() => markRead(n.id)}>
+                        Mark read
+                      </button>
+                    )}
                   </div>
-                  {!n.read && (
-                    <button className="btn btn-sm btn-st-outline flex-shrink-0" onClick={() => markRead(n.id)}>
-                      Mark read
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
 
@@ -122,8 +137,8 @@ export default function Notifications() {
                   <textarea className="form-control" rows={3} value={message} onChange={(e) => setMessage(e.target.value)} />
                 </div>
                 <div className="d-flex gap-2">
-                  <button type="submit" className="btn btn-st-primary flex-grow-1">
-                    Send
+                  <button type="submit" className="btn btn-st-primary flex-grow-1" disabled={sending}>
+                    {sending ? 'Sending…' : 'Send'}
                   </button>
                   <button type="button" className="btn btn-st-outline" onClick={() => setBroadcastOpen(false)}>
                     Cancel

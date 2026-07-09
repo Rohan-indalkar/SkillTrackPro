@@ -1,17 +1,17 @@
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { useNavigate } from 'react-router-dom'
+import NotificationBell from './NotificationBell'
 
 export default function Topbar({ title, onToggleSidebar }) {
   const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
-
-  // Student notifications page doesn't exist yet (Day 4) — only Admin/Trainer can navigate there for now.
-  const notificationsPath = user?.role && user.role !== 'STUDENT' ? `/${user.role.toLowerCase()}/notifications` : null
 
   return (
     <div className="st-topbar">
@@ -29,12 +29,14 @@ export default function Topbar({ title, onToggleSidebar }) {
       <div className="d-flex align-items-center gap-2 gap-md-3">
         <button
           className="btn btn-sm btn-st-outline"
-          onClick={() => notificationsPath && navigate(notificationsPath)}
-          disabled={!notificationsPath}
+          onClick={toggleTheme}
+          aria-label="Toggle dark mode"
+          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
         >
-          <i className="bi bi-bell" />
-          <span className="d-none d-md-inline ms-1">Notifications</span>
+          <i className={`bi ${theme === 'light' ? 'bi-moon-stars' : 'bi-sun'}`} />
         </button>
+
+        {user?.role && <NotificationBell role={user.role} />}
 
         <div className="d-flex align-items-center gap-2">
           <div

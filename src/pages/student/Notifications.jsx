@@ -17,7 +17,7 @@ const TYPE_BADGE = {
 }
 
 export default function Notifications() {
-  const { items, loading, reload } = useCrudAsync(() => api.notifications.getForRole('TRAINER'), api.notifications)
+  const { items, loading, reload } = useCrudAsync(() => api.notifications.getForRole('STUDENT'), api.notifications)
   const toast = useToast()
   const [filter, setFilter] = useState('All')
 
@@ -30,7 +30,7 @@ export default function Notifications() {
   }
 
   const markAllRead = async () => {
-    await api.notifications.markAllRead('TRAINER')
+    await api.notifications.markAllRead('STUDENT')
     reload()
     toast.success('All notifications marked as read.')
   }

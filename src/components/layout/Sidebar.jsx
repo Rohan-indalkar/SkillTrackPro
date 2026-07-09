@@ -17,7 +17,6 @@ const NAV_BY_ROLE = {
     { to: '/trainer/assignments', label: 'Assignments', icon: 'bi-clipboard-check' },
     { to: '/trainer/marks', label: 'Marks', icon: 'bi-graph-up' },
     { to: '/trainer/reports', label: 'Reports', icon: 'bi-bar-chart' },
-    { to: '/trainer/notifications', label: 'Notifications', icon: 'bi-bell' },
   ],
   STUDENT: [
     { to: '/student/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2' },
@@ -26,6 +25,7 @@ const NAV_BY_ROLE = {
     { to: '/student/assignments', label: 'Assignments', icon: 'bi-clipboard-check' },
     { to: '/student/marks', label: 'Marks', icon: 'bi-graph-up' },
     { to: '/student/progress', label: 'Progress', icon: 'bi-speedometer2' },
+    { to: '/student/notifications', label: 'Notifications', icon: 'bi-bell' },
   ],
 }
 
